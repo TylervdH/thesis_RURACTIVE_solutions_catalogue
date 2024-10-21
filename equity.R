@@ -8,7 +8,7 @@ factors <- c("Sustainable multimodal mobility",
              "Culture and cultural innovation",
              "Local services, health and wellbeing")
 
-# Summarize social justice data by RDD type and factor
+# Summarise social justice data by RDD type and factor
 social_justice_summary <- solutions_clean %>%
   filter(social_justice == "Y") %>%
   pivot_longer(cols = c("primary_rdd", "secondary_rdd", "tertiary_rdd"),
@@ -59,11 +59,6 @@ print(sj_final)
 
 ################################################
 ### Occurence of inclusion related terms
-
-# Load necessary libraries
-library(tidyverse)
-library(stringr)
-library(tm)        # For text mining
 
 # Define keywords to search for, including variations
 keywords <- c(
@@ -129,7 +124,7 @@ count_total_keywords <- function(text) {
   return(list(total_count = total_count, matched_words = matched_keywords))
 }
 
-# Combine 'aim' and 'story' columns
+# Combine 'aim' and 'story'
 solutions_clean$combined_text <- paste(solutions_clean$aim, solutions_clean$story, sep = " ")
 
 # Apply the function to the combined text and store the results
@@ -146,13 +141,11 @@ result <- keyword_counts %>%
   summarise(total_keyword_count = sum(total_count),
             matched_words_list = list(unique(unlist(matched_words))))  # Get unique words per group
 
-# Print the result
 print(result)
 
-# Check which words were identified for quality control
 print(result$matched_words_list)
 
-# Plot the result
+# Plot
 ggplot(result, aes(x = primary_rdd, y = total_keyword_count)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   theme_classic() +
@@ -164,7 +157,6 @@ ggplot(result, aes(x = primary_rdd, y = total_keyword_count)) +
 
 ### 3. Tabulating Percentage
 
-# Group by primary_rdd and calculate the total keyword counts and percentage
 result <- keyword_counts %>%
   filter(!is.na(primary_rdd)) %>%
   group_by(primary_rdd) %>%
@@ -178,10 +170,7 @@ result <- keyword_counts %>%
   ) %>%
   ungroup()  # Un-group to avoid issues with future operations
 
-# Debug: Print intermediate results for verification
-print(result)
-
-# Create a formatted table using gt
+# Table
 table_output <- result %>%
   select(primary_rdd, total_solutions, total_keyword_count, percentage_keyword_count) %>%
   gt() %>%
@@ -207,5 +196,4 @@ table_output <- result %>%
     columns = vars(total_keyword_count, percentage_keyword_count)
   )
 
-# Display the table
 table_output
