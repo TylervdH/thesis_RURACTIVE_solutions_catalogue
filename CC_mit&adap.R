@@ -26,25 +26,25 @@ count_ccm
 ###################################################
 # Table of adaptation and mitigation together broken down by RDD
 
-# Step 1: Filter data for entries where both mitigation and adaptation are "Y" and primary_rdd is valid
+# Filter data for entries where both mitigation and adaptation are "Y" and primary_rdd is valid
 climate_change_summary <- solutions_clean %>%
   filter(cc_mitigation == "Y" & cc_adaptation == "Y" & 
            !is.na(primary_rdd) & primary_rdd != "NA" & primary_rdd != "") %>%
   count(primary_rdd) %>%
   rename(factor = primary_rdd, count = n)
 
-# Step 2: Create a complete set of factors (in case some factors have zero count)
+# Create a complete set of factors (in case some factors have zero count)
 all_factors <- data.frame(factor = unique(solutions_clean$primary_rdd[!is.na(solutions_clean$primary_rdd) & 
                                                                         solutions_clean$primary_rdd != "NA" & 
                                                                         solutions_clean$primary_rdd != ""]))
 
-# Step 3: Join with the summary to ensure all factors are represented
+# Join with the summary to ensure all factors are represented
 climate_change_complete <- all_factors %>%
   left_join(climate_change_summary, by = "factor") %>%
   mutate(count = ifelse(is.na(count), 0, count)) %>%
   arrange(desc(count))  # Sort by count in descending order
 
-# Step 4: Display the results in a nicely formatted table using gt
+# Display the results in a nicely formatted table using gt
 climate_change_complete %>%
   gt() %>%
   tab_header(
@@ -66,7 +66,7 @@ climate_change_complete %>%
 # Define keywords to search for, including variations
 keywords <- c("mitigation[s]?", "mitigate[s]?", "mitigating", "adaptation[s]?", "adapt[s]?", "adapting")
 
-# Function to preprocess (stem) text using tm
+# Preprocess (stem) text using tm
 preprocess_text <- function(text) {
   corpus <- Corpus(VectorSource(text))
   corpus <- tm_map(corpus, content_transformer(tolower))    # Convert to lowercase
@@ -77,10 +77,10 @@ preprocess_text <- function(text) {
   return(sapply(corpus, as.character))                      # Return preprocessed text
 }
 
-# Preprocess the keywords
+# Preprocess keywords
 stemmed_keywords <- preprocess_text(keywords)
 
-# Function to count total keyword occurrences using stemmed keywords
+# Count total keyword occurrences using stemmed keywords
 count_total_keywords <- function(text) {
   text <- preprocess_text(text) # Preprocess the text
   total_count <- sum(sapply(stemmed_keywords, function(keyword) {
@@ -89,7 +89,7 @@ count_total_keywords <- function(text) {
   return(total_count)
 }
 
-# Combine 'aim' and 'story' columns
+# Combine 'aim' and 'story'
 solutions_clean$combined_text <- paste(solutions_clean$aim, solutions_clean$story, sep = " ")
 
 # Apply the function to the combined text
@@ -104,7 +104,7 @@ result <- keyword_counts %>%
   summarise(total_keyword_count = sum(total_count)) %>% 
   arrange(desc(total_keyword_count))  # Sort by count in descending order
 
-# Create a nice table using gt
+# Create table
 result %>%
   gt() %>%
   tab_header(
@@ -125,13 +125,10 @@ result %>%
   )
 
 ############################################################
-############################################################
-############################################################
 # Define keywords to search for, including variations
 keywords_mitigation <- c("mitigation[s]?", "mitigate[s]?", "mitigating")
 keywords_adaptation <- c("adaptation[s]?", "adapt[s]?", "adapting")
 
-# Function to preprocess (stem) text using tm
 preprocess_text <- function(text) {
   corpus <- Corpus(VectorSource(text))
   corpus <- tm_map(corpus, content_transformer(tolower))    # Convert to lowercase
@@ -151,7 +148,7 @@ count_total_keywords <- function(text, keywords) {
   return(total_count)
 }
 
-# Combine 'aim' and 'story' columns
+# Combine 'aim' and 'story'
 solutions_clean$combined_text <- paste(solutions_clean$aim, solutions_clean$story, sep = " ")
 
 ###################################################
@@ -159,7 +156,7 @@ solutions_clean$combined_text <- paste(solutions_clean$aim, solutions_clean$stor
 adaptation_mitigation_data <- solutions_clean %>%
   filter(cc_mitigation == "Y")  # Filter for entries with climate change mitigation
 
-# Apply the function to the combined text
+# Apply function to the combined text
 adaptation_mitigation_keyword_counts <- adaptation_mitigation_data %>%
   mutate(total_count = map_dbl(combined_text, ~ count_total_keywords(.x, keywords_adaptation))) %>%
   select(primary_rdd, total_count)
@@ -171,7 +168,7 @@ adaptation_mitigation_result <- adaptation_mitigation_keyword_counts %>%
   summarise(total_keyword_count = sum(total_count)) %>% 
   arrange(desc(total_keyword_count))  # Sort by count in descending order
 
-# Create a nice table for adaptation related to mitigation using gt
+# Table
 adaptation_mitigation_result %>%
   gt() %>%
   tab_header(
@@ -196,19 +193,19 @@ adaptation_mitigation_result %>%
 mitigation_adaptation_data <- solutions_clean %>%
   filter(cc_adaptation == "Y")  # Filter for entries with climate change adaptation
 
-# Apply the function to the combined text
+# Apply function to the combined text
 mitigation_adaptation_keyword_counts <- mitigation_adaptation_data %>%
   mutate(total_count = map_dbl(combined_text, ~ count_total_keywords(.x, keywords_mitigation))) %>%
   select(primary_rdd, total_count)
 
-# Group by primary_rdd and sum the total keyword counts
+# Group by primary_rdd and sum total keyword counts
 mitigation_adaptation_result <- mitigation_adaptation_keyword_counts %>%
   filter(!is.na(primary_rdd)) %>%
   group_by(primary_rdd) %>%
   summarise(total_keyword_count = sum(total_count)) %>% 
   arrange(desc(total_keyword_count))  # Sort by count in descending order
 
-# Create a nice table for mitigation related to adaptation using gt
+# Table
 mitigation_adaptation_result %>%
   gt() %>%
   tab_header(
@@ -236,7 +233,6 @@ mitigation_adaptation_result %>%
 
 variables <- c("cc_adaptation", "cc_mitigation")
 
-# Function to create and display a word cloud
 create_wordcloud <- function(variable, data) {
   # Filter data for the current variable
   var_filtered <- data %>% filter(!!sym(variable) == "Y")
@@ -246,10 +242,8 @@ create_wordcloud <- function(variable, data) {
     return(NULL)
   }
   
-  # Combine aim and story texts for analysis
   text_data <- paste(var_filtered$aim, var_filtered$story, sep = "\n")
   
-  # Create and preprocess the corpus
   corpus <- Corpus(VectorSource(text_data)) %>%
     tm_map(content_transformer(tolower)) %>%
     tm_map(removePunctuation) %>%
@@ -275,60 +269,5 @@ create_wordcloud <- function(variable, data) {
   }
 }
 
-# Generate and display word clouds for adaptation and mitigation
 create_wordcloud("cc_adaptation", solutions_clean)
 create_wordcloud("cc_mitigation", solutions_clean)
-
-
-
-
-
-
-
-
-
-
-
-# Load necessary libraries
-library(dplyr)
-library(gt)
-
-###################################################
-# Table of adaptation and mitigation together broken down by RDD
-
-# Step 1: Filter data for entries where both mitigation and adaptation are "Y" and primary_rdd is valid
-climate_change_summary <- solutions_clean %>%
-  filter(cc_mitigation == "Y" & cc_adaptation == "Y" & 
-           !is.na(primary_rdd) & primary_rdd != "NA" & primary_rdd != "") %>%
-  count(primary_rdd) %>%
-  rename(factor = primary_rdd, count = n)
-
-# Step 2: Create a complete set of factors (in case some factors have zero count)
-all_factors <- data.frame(factor = unique(solutions_clean$primary_rdd[!is.na(solutions_clean$primary_rdd) & 
-                                                                        solutions_clean$primary_rdd != "NA" & 
-                                                                        solutions_clean$primary_rdd != ""]))
-
-# Step 3: Join with the summary to ensure all factors are represented
-climate_change_complete <- all_factors %>%
-  left_join(climate_change_summary, by = "factor") %>%
-  mutate(count = ifelse(is.na(count), 0, count)) %>%
-  arrange(desc(count))  # Sort by count in descending order
-
-# Step 4: Display the results in a nicely formatted table using gt
-climate_change_complete %>%
-  gt() %>%
-  tab_header(
-    title = "Count of Entries with Both Climate Change Mitigation and Adaptation",
-    subtitle = "Grouped by Primary RDD | This table presents the counts of solutions that demonstrate both climate change mitigation and adaptation, categorized by the primary Rural Development Drivers (RDD)."
-  ) %>%
-  cols_label(
-    factor = "Primary RDD",
-    count = "Count"
-  ) %>%
-  tab_options(
-    table.font.size = 12,
-    column_labels.font.weight = "bold",
-    table.align = "left"
-  )
-
-
