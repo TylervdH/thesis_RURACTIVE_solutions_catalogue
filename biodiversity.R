@@ -3,7 +3,7 @@ library(gt)
 library(stringr)
 
 # PART 1
-# Define the RDD factors of interest with abbreviations for the x-axis labels
+# Define the RDD factors with abbreviations for the x-axis labels
 factors <- c("Sustainable multimodal mobility",
              "Energy transition and climate neutrality",
              "Sustainable agrifood systems and ecosystem management", 
@@ -52,7 +52,7 @@ biodiversity_rdd_dodged <- solutions_clean %>%
 
 figure_label_bd <- "**Figure 5:** Dodged bar chart of solutions prioritising social justice and inclusion as a cross-cutting priority across Rural Development Drivers (RDDs), categorized by primary, secondary, and tertiary RDD types"
 
-# Add the caption and formatting
+# Add caption and formatting
 bd_final <- biodiversity_rdd_dodged +
   labs(caption = figure_label_bd) +  # Add the caption
   theme(
@@ -66,14 +66,8 @@ bd_final <- biodiversity_rdd_dodged +
     plot.margin = margin(t = 20, b = 20, l = 10, r = 10), # Adjust margins for title, plot area, and caption
   )
 
-# Display the final plot with the label
 print(bd_final)
 
-
-
-
-
-#########################################
 #########################################
 # PART 2
 
@@ -166,10 +160,7 @@ df_biodiversity_freq$Percentage_Energy <- (df_biodiversity_freq$Frequency_Energy
 df_biodiversity_freq$Percentage_Culture <- (df_biodiversity_freq$Frequency_Culture / total_culture_solutions) * 100
 df_biodiversity_freq$Percentage_Services <- (df_biodiversity_freq$Frequency_Services / total_services_solutions) * 100
 
-# Load the gt package
-library(gt)
-
-# Create a nice table using gt with only percentages
+# Ctable
 df_biodiversity_percentages <- df_biodiversity_freq %>%
   select(Keyword, 
          Percentage_Multimodal, 
@@ -179,7 +170,6 @@ df_biodiversity_percentages <- df_biodiversity_freq %>%
          Percentage_Culture, 
          Percentage_Services)
 
-# Create a nice table using gt
 df_biodiversity_percentages %>%
   gt() %>%
   tab_header(
