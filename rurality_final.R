@@ -1,11 +1,4 @@
-# Load required libraries
-library(patchwork)
-library(ggtext)  # Ensure ggtext is loaded for markdown support
-library(stringr) # For string wrapping
-library(grid)    # For unit conversion
-
-
-# Define the correct categories for territorial features (no abbreviations)
+# Define categories for territorial features
 correct_categories <- c(
   "Intermediate region, close to a city",
   "Intermediate, remote region",
@@ -13,21 +6,20 @@ correct_categories <- c(
   "Predominantly rural, remote region"
 )
 
-# Function to clean and find the closest territorial match
+# Clean and find the closest territorial match
 find_closest_match <- function(x, categories) {
   if (is.na(x) || nchar(trimws(x)) == 0) return(NA)
   
-  # Calculate string distances to find the closest match
+  # Calculate string distances
   distances <- stringdist::stringdist(tolower(x), tolower(categories), method = "lv")
   closest_category <- categories[which.min(distances)]
   
-  # If the minimum distance is too large, return NA
   if (min(distances) > 5) return(NA)
   
   return(closest_category)
 }
 
-# Clean the territorial_features column in the data
+# Clean territorial_features column in the data
 territorial_features_clean <- solutions_clean %>%
   select(solution_id, primary_rdd, territorial_features) %>%
   separate_rows(territorial_features, sep = ";") %>%
@@ -59,7 +51,7 @@ factors <- c("Sustainable multimodal mobility",
              "Culture and cultural innovation",
              "Local services, health and wellbeing")
 
-# Define RDD abbreviations (keep the same as before)
+# Define RDD abbreviations
 rdd_abbreviations <- c( 
   "Sustainable multimodal mobility" = "SMM",
   "Energy transition and climate neutrality" = "ETCN",
@@ -69,13 +61,11 @@ rdd_abbreviations <- c(
   "Local services, health and wellbeing" = "LSHW"
 )
 
-
-# Ensure primary_rdd is ordered according to the custom factors list
 rdd_by_territorial_features <- rdd_by_territorial_features %>%
   mutate(primary_rdd = factor(primary_rdd, levels = factors))  # Apply custom order
 
 
-# Create the faceted plot
+# Faceted plot
 rural_gradient <- ggplot(rdd_by_territorial_features, aes(x = primary_rdd, y = count, fill = primary_rdd)) +
   geom_bar(position = position_dodge(width = 0.8), width = 0.7, stat = "identity") +  
   labs(
