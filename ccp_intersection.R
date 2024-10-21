@@ -1,12 +1,10 @@
-# Step 1: Inspect unique values (already done, but keeping for clarity)
+# Inspect unique values
 unique(solutions_clean$cc_adaptation)
 unique(solutions_clean$cc_mitigation)
 unique(solutions_clean$biodiversity)
 unique(solutions_clean$social_justice)
 
-# Step 2: Clean the columns by filtering out invalid rows
-# Only keep rows where values are "Y" or NA for cross-cutting priorities
-# Only keep rows where values are "Y" or NA for cross-cutting priorities
+# Clean the columns by filtering out invalid rows
 ccp_filtered <- solutions_clean %>%
   filter(
     (cc_adaptation == "Y" | is.na(cc_adaptation)) &
@@ -15,7 +13,7 @@ ccp_filtered <- solutions_clean %>%
       (social_justice == "Y" | is.na(social_justice))
   )
 
-# Step 3: Convert the cross-cutting priorities into binary (1 or 0) format for analysis
+# Convert the cross-cutting priorities into binary (1 or 0) format for analysis
 ccp_intersection <- ccp_filtered %>%
   mutate(
     cc_adaptation = as.numeric(cc_adaptation == "Y"),
@@ -24,11 +22,6 @@ ccp_intersection <- ccp_filtered %>%
     social_justice = as.numeric(social_justice == "Y")
   )
 
-# Check the conversion
-print(head(ccp_intersection))
-
-# Recalculate counts
-# Total number of solutions
 total_solutions <- nrow(ccp_intersection)
 
 # Calculate the number of solutions for each cross-cutting priority (individual counts)
@@ -66,16 +59,12 @@ quadruple_count <- ccp_intersection %>%
     All_4 = sum(cc_mitigation & cc_adaptation & biodiversity & social_justice, na.rm = TRUE)
   )
 
-# Print the results to check
 print(single_counts)
 print(pair_counts)
 print(triple_counts)
 print(quadruple_count)
 
-# Step 5: Display the counts in a table format
-library(tidyr)
-library(knitr)
-
+# Display the counts in a table format
 # Reshape the data
 intersection_long <- bind_rows(
  # single_counts %>% pivot_longer(everything(), names_to = "Priority", values_to = "Count") %>% mutate(Type = "Single"),
@@ -86,15 +75,10 @@ intersection_long <- bind_rows(
 # 
 # kable(intersection_long, format = "markdown", col.names = c("Priority", "Count", "Type"))
 
-# library(ggplot2)
-# library(dplyr)
-# library(forcats)
-# library(viridis)
-
-# First, let's create a custom order for the Type factor
+# Create an order for the factors
 type_order <- c("Pairs", "Triples", "All Four")
 
-# Now, let's modify the data to create a grouping variable and order the priorities
+# Modify the data to create a grouping variable and order the priorities
 intersection_long_modified <- intersection_long %>%
   mutate(
     Type = factor(Type, levels = type_order),
@@ -102,8 +86,7 @@ intersection_long_modified <- intersection_long %>%
   ) %>%
   arrange(Type, desc(Count))
 
-# PLOT
-
+# Plot
 ccp_intersection_graph <- ggplot(intersection_long_modified, aes(x = Priority, y = Count, fill = Type)) +
   geom_col(position = position_dodge(width = 0.9)) +
   coord_flip() +
@@ -142,12 +125,10 @@ ccp_intersection <- ccp_intersection_graph +
 
 print(ccp_intersection)
 
-
 ####################################################
-####################################################
-# Step 1: Create a column to represent each triple and the quadruple intersection
+# Create a column to represent each triple and the quadruple intersection
 
-# Mutate the dataset to convert the cross-cutting priorities to binary and create columns for each intersection type
+# Mutate dataset to convert the cross-cutting priorities to binary and create columns for each intersection type
 ccp_intersections <- ccp_filtered %>%
   mutate(
     cc_adaptation = as.numeric(cc_adaptation == "Y"),
@@ -162,7 +143,7 @@ ccp_intersections <- ccp_filtered %>%
     All_4 = cc_mitigation & cc_adaptation & biodiversity & social_justice
   )
 
-# Step 2: Create subsets for each triple and the quadruple
+# Subset each triple and the quadruple
 
 ccp_CCM_CCA_BD <- ccp_intersections %>% filter(CCM_CCA_BD == 1)
 ccp_CCM_CCA_SJI <- ccp_intersections %>% filter(CCM_CCA_SJI == 1)
@@ -170,7 +151,7 @@ ccp_CCM_BD_SJI <- ccp_intersections %>% filter(CCM_BD_SJI == 1)
 ccp_CCA_BD_SJI <- ccp_intersections %>% filter(CCA_BD_SJI == 1)
 ccp_All_4 <- ccp_intersections %>% filter(All_4 == 1)
 
-# Step 3: Create a mapping of RDDs to abbreviations
+# Map of RDDs to abbreviations
 rdd_abbreviations <- c( 
   "Sustainable multimodal mobility" = "SMM",
   "Energy transition and climate neutrality" = "ETCN",
@@ -180,7 +161,7 @@ rdd_abbreviations <- c(
   "Local services, health and wellbeing" = "LSHW"
 )
 
-# Step 4: Create a function to plot the bar chart for a given subset using abbreviations
+# Function to plot the bar chart for a given subset using abbreviations
 plot_rdd_count <- function(data, title) {
   # Count the number of solutions per primary_rdd
   data %>%
@@ -207,14 +188,12 @@ plot_rdd_count <- function(data, title) {
   
 }
 
-# Step 5: Create the five plots
+# Plot
 plot_CCM_CCA_BD <- plot_rdd_count(ccp_CCM_CCA_BD, "CCM + CCA + BD")
 plot_CCM_CCA_SJI <- plot_rdd_count(ccp_CCM_CCA_SJI, "CCM + CCA + SJI")
 plot_CCM_BD_SJI <- plot_rdd_count(ccp_CCM_BD_SJI, "CCM + BD + SJI")
 plot_CCA_BD_SJI <- plot_rdd_count(ccp_CCA_BD_SJI, "CCA + BD + SJI")
 plot_all_4 <- plot_rdd_count(ccp_All_4, "CCM + CCA + BD + SJI")
-
-
 
 triples_graph <- (plot_CCM_CCA_BD / plot_CCM_CCA_SJI / plot_CCM_BD_SJI / plot_CCA_BD_SJI) +
   plot_layout(ncol = 2)
@@ -236,8 +215,7 @@ ccp_triples <- triples_graph +
 
 print(ccp_triples)
 
-
-
+# Graph of all four
 ccp_all_graph <- plot_all_4
 
 figure_label_ccp_all <- "**Figure 9:** Bar chart visualising the solutions that address all four cross-cutting priorities, broken down by primary rural development driver"
@@ -257,18 +235,10 @@ ccp_all_final <- ccp_all_graph +
 
 print(ccp_all_final)
 
-
-
-
-
-
-
-
-# Arrange the plots in a grid with 2 columns, and set guides = "collect" to manage legends uniformly
+# Grid arrange plots
 triples_graph <- (plot_CCM_CCA_BD / plot_CCM_CCA_SJI / plot_CCM_BD_SJI / plot_CCA_BD_SJI) +
   plot_layout(ncol = 2, guides = "collect")
 
-# Add the main title and combine the graph and caption into a single layout, placing the caption beneath all plots
 ccp_triples <- triples_graph + 
   plot_annotation(
     title = "Triple Intersections of Cross-Cutting Priorities Across Rural Development Drivers",  # Main title
